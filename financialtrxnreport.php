@@ -136,7 +136,8 @@ function financialtrxnreport_civicrm_alterSettingsFolders(&$metaDataFolders = NU
  *
 function financialtrxnreport_civicrm_preProcess($formName, &$form) {
 
-} // */
+} // 
+*/
 
 /**
  * Implements hook_civicrm_navigationMenu().
@@ -153,4 +154,5 @@ function financialtrxnreport_civicrm_navigationMenu(&$menu) {
     'separator' => 0,
   ));
   _financialtrxnreport_civix_navigationMenu($menu);
-} // */
+} // 
+*/
