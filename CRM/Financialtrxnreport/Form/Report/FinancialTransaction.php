@@ -165,5 +165,7 @@ LEFT JOIN
     $this->endPostProcess($rows);
   }
 
-  function alterDisplay(&$rows) {}
+  function alterDisplay(&$rows) {
+    
+  }
 }
