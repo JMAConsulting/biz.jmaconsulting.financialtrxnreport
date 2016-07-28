@@ -69,19 +69,21 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
 
   function from() {
     $exportedBatchStatus = CRM_Core_OptionGroup::getValue('batch_status', 'Exported', 'name');
+    $checkPaymentMethod = CRM_Core_OptionGroup::getValue('payment_instrument', 'Check', 'name');    
     $this->_from = "
 FROM (
     SELECT DATE(trxn_date) AS trxn_date, SUM(total_amount) AS total_amount_1, to_financial_account_id AS financial_account_id 
       FROM civicrm_financial_trxn cft
       INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = cft.id AND ceb.entity_table = 'civicrm_financial_trxn'
       INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
+      WHERE NOT (cft.total_amount < 0 AND cft.payment_instrument_id = $checkPaymentMethod)
       GROUP BY DATE(trxn_date), total_amount > 0, to_financial_account_id
     UNION
     SELECT DATE(trxn_date), -sum(total_amount) AS total_amount_2, from_financial_account_id 
       FROM civicrm_financial_trxn cft
       INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = cft.id AND ceb.entity_table = 'civicrm_financial_trxn'
       INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
-      WHERE from_financial_account_id IS NOT NULL
+      WHERE from_financial_account_id IS NOT NULL AND NOT ( cft.total_amount < 0 AND cft.payment_instrument_id = $checkPaymentMethod )
       GROUP BY DATE(trxn_date), total_amount > 0, from_financial_account_id
     UNION
     SELECT sq1.trxn_date, -sum(total_amount_3) AS total_amount_4, financial_account_id 
@@ -92,6 +94,7 @@ FROM (
           INNER JOIN civicrm_financial_trxn cft ON cft.id = ceft.financial_trxn_id AND cft.from_financial_account_id IS NULL
           INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = ceft.financial_trxn_id AND ceb.entity_table = 'civicrm_financial_trxn'
           INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
+          WHERE NOT ( cft.total_amount < 0 AND cft.payment_instrument_id = $checkPaymentMethod )
           GROUP BY cfi.id, cfi.amount > 0
         ) AS sq1
       GROUP BY DATE(trxn_date), total_amount_3 > 0, financial_account_id
