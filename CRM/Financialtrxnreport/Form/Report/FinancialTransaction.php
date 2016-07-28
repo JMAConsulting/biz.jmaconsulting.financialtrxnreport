@@ -86,18 +86,17 @@ FROM (
     UNION
     SELECT sq1.trxn_date, -sum(total_amount_3) AS total_amount_4, financial_account_id 
       FROM (
-        SELECT min(DATE(cft.trxn_date)) as trxn_date, sum(cfi.amount) total_amount_3, financial_account_id 
+        SELECT min(DATE(cft.trxn_date)) AS trxn_date, sum(cfi.amount) total_amount_3, financial_account_id 
           FROM civicrm_financial_item cfi
           INNER JOIN civicrm_entity_financial_trxn ceft ON ceft.entity_id = cfi.id AND ceft.entity_table = 'civicrm_financial_item' AND cfi.entity_table <> 'civicrm_financial_trxn'
-          INNER JOIN civicrm_financial_trxn cft on cft.id = ceft.financial_trxn_id AND cft.from_financial_account_id IS NULL
+          INNER JOIN civicrm_financial_trxn cft ON cft.id = ceft.financial_trxn_id AND cft.from_financial_account_id IS NULL
           INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = ceft.financial_trxn_id AND ceb.entity_table = 'civicrm_financial_trxn'
           INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
           GROUP BY cfi.id, cfi.amount > 0
         ) AS sq1
       GROUP BY DATE(trxn_date), total_amount_3 > 0, financial_account_id
-  ) as {$this->_aliases['civicrm_financial_trxn']}
-  INNER JOIN civicrm_financial_account {$this->_aliases['civicrm_financial_account']} ON {$this->_aliases['civicrm_financial_trxn']}.financial_account_id = {$this->_aliases['civicrm_financial_account']}.id 
-
+  ) AS {$this->_aliases['civicrm_financial_trxn']}
+  INNER JOIN civicrm_financial_account {$this->_aliases['civicrm_financial_account']} ON {$this->_aliases['civicrm_financial_trxn']}.financial_account_id = {$this->_aliases['civicrm_financial_account']}.id
 ";
 
   }
