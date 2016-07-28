@@ -3,6 +3,8 @@
 class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Report_Form {
 
   function __construct() {
+    $monthStart = new DateTime("first day of last month");
+    $monthEnd = new DateTime("last day of last month");
     $this->_columns = array(
       'civicrm_financial_trxn' => array(
         'dao' => 'CRM_Financial_DAO_FinancialTrxn',
@@ -14,7 +16,7 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
           'total_amount' => array(
             'title' => ts('Amount'),
             'required' => TRUE,
-            'dbAlias' => 'IF(ISNULL(SUM(total_amount_1)), 0, SUM(total_amount_1)) - IF(ISNULL(SUM(total_amount_2)), 0 , SUM(total_amount_2)) - IF(ISNULL(SUM(total_amount_3)), 0, SUM(total_amount_3))',
+            'dbAlias' => 'total_amount_1',
           ),
         ),
         'filters' => array(
@@ -22,6 +24,7 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
             'title' => ts('Date'),
             'operatorType' => CRM_Report_Form::OP_DATE,
             'type' => CRM_Utils_Type::T_DATE,
+            'default' => array('from' => $monthStart->format('m/d/Y'), 'to'=> $monthEnd->format('m/d/Y')),
           ),
         ),
       ),
@@ -45,12 +48,6 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
   function preProcess() {
     $this->assign('reportTitle', ts('Monthly Financial Transaction Report by Day'));
     parent::preProcess();
-  }
-  
-  function setDefaultValues($freeze = true) {
-    /* $defaults['trxn_date_from']= '07/19/2016'; */
-    /* $defaults['trxn_date_relative'] = 0; */
-    return $defaults;
   }
 
   function select() {
@@ -76,29 +73,33 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
   function from() {
     $exportedBatchStatus = CRM_Core_OptionGroup::getValue('batch_status', 'Exported', 'name');
     $this->_from = "
- FROM civicrm_financial_account {$this->_aliases['civicrm_financial_account']}
-
-LEFT JOIN
-( 
-  SELECT trxn_date, total_amount total_amount_1, to_financial_account_id FROM civicrm_financial_trxn cft
-  INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = cft.id AND ceb.entity_table = 'civicrm_financial_trxn'
-  INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
-) {$this->_aliases['civicrm_financial_trxn']} ON {$this->_aliases['civicrm_financial_account']}.id = {$this->_aliases['civicrm_financial_trxn']}.to_financial_account_id
-
-LEFT JOIN 
-(
-  SELECT total_amount total_amount_2, from_financial_account_id FROM civicrm_financial_trxn cft
-  INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = cft.id AND ceb.entity_table = 'civicrm_financial_trxn'
-  INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
-) {$this->_aliases['civicrm_financial_trxn']}_1 ON {$this->_aliases['civicrm_financial_account']}.id = {$this->_aliases['civicrm_financial_trxn']}_1.from_financial_account_id
-
-LEFT JOIN 
-(
-  SELECT cfi.amount total_amount_3, financial_account_id FROM civicrm_financial_item cfi
-  INNER JOIN civicrm_entity_financial_trxn ceft ON ceft.entity_id = cfi.id AND ceft.entity_table = 'civicrm_financial_item'
-  INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = ceft.financial_trxn_id AND ceb.entity_table = 'civicrm_financial_trxn'
-  INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
-) {$this->_aliases['civicrm_financial_item']} ON {$this->_aliases['civicrm_financial_account']}.id = {$this->_aliases['civicrm_financial_item']}.financial_account_id
+FROM (
+    SELECT DATE(trxn_date) AS trxn_date, SUM(total_amount) AS total_amount_1, to_financial_account_id AS financial_account_id 
+      FROM civicrm_financial_trxn cft
+      INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = cft.id AND ceb.entity_table = 'civicrm_financial_trxn'
+      INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
+      GROUP BY DATE(trxn_date), total_amount > 0, to_financial_account_id
+    UNION
+    SELECT DATE(trxn_date), -sum(total_amount) AS total_amount_2, from_financial_account_id 
+      FROM civicrm_financial_trxn cft
+      INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = cft.id AND ceb.entity_table = 'civicrm_financial_trxn'
+      INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
+      WHERE from_financial_account_id IS NOT NULL
+      GROUP BY DATE(trxn_date), total_amount > 0, from_financial_account_id
+    UNION
+    SELECT sq1.trxn_date, -sum(total_amount_3) AS total_amount_4, financial_account_id 
+      FROM (
+        SELECT min(DATE(cft.trxn_date)) as trxn_date, sum(cfi.amount) total_amount_3, financial_account_id 
+          FROM civicrm_financial_item cfi
+          INNER JOIN civicrm_entity_financial_trxn ceft ON ceft.entity_id = cfi.id AND ceft.entity_table = 'civicrm_financial_item' AND cfi.entity_table <> 'civicrm_financial_trxn'
+          INNER JOIN civicrm_financial_trxn cft on cft.id = ceft.financial_trxn_id AND cft.from_financial_account_id IS NULL
+          INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = ceft.financial_trxn_id AND ceb.entity_table = 'civicrm_financial_trxn'
+          INNER JOIN civicrm_batch cb ON cb.id = ceb.batch_id AND cb.status_id = {$exportedBatchStatus}
+          GROUP BY cfi.id, cfi.amount > 0
+        ) AS sq1
+      GROUP BY DATE(trxn_date), total_amount_3 > 0, financial_account_id
+  ) as {$this->_aliases['civicrm_financial_trxn']}
+  INNER JOIN civicrm_financial_account {$this->_aliases['civicrm_financial_account']} ON {$this->_aliases['civicrm_financial_trxn']}.financial_account_id = {$this->_aliases['civicrm_financial_account']}.id 
 
 ";
 
@@ -148,7 +149,7 @@ LEFT JOIN
   }
 
   function orderBy() {
-    $this->_orderBy = " ORDER BY {$this->_aliases['civicrm_financial_account']}.accounting_code";
+    $this->_orderBy = " ORDER BY trxn_date, {$this->_aliases['civicrm_financial_account']}.accounting_code, total_amount_1";
   }
 
   function postProcess() {
