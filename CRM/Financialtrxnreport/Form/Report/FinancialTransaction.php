@@ -13,6 +13,11 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
             'title' => ts('Date'),
             'required' => TRUE,
           ),
+          'accounting_code' => array(
+            'title' => ts('Accounting Code'),
+            'required' => TRUE,
+            'dbAlias' => 'accounting_code',
+          ),
           'total_amount' => array(
             'title' => ts('Amount'),
             'required' => TRUE,
@@ -31,15 +36,7 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
       'civicrm_financial_account' => array(
         'dao' => 'CRM_Financial_DAO_FinancialAccount',
         'fields' => array(
-          'accounting_code' => array(
-            'title' => ts('Accounting Code'),
-            'required' => TRUE,
-          ),
         ),
-      ),
-      'civicrm_financial_item' => array(
-        'dao' => 'CRM_Financial_DAO_FinancialItem',
-        'fields' => array(),
       ),
     );
     parent::__construct();
