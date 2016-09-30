@@ -2,7 +2,7 @@
 
 class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Report_Form {
 
-  function __construct() {
+  public function __construct() {
     $monthStart = new DateTime("first day of last month");
     $monthEnd = new DateTime("last day of last month");
     $this->_columns = array(
@@ -55,12 +55,12 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
     parent::__construct();
   }
 
-  function preProcess() {
+  public function preProcess() {
     $this->assign('reportTitle', ts('Monthly Financial Transaction Report by Day'));
     parent::preProcess();
   }
 
-  function select() {
+  public function select() {
     $select = $this->_columnHeaders = array();
 
     foreach ($this->_columns as $tableName => $table) {
@@ -80,7 +80,7 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
     $this->_select = "SELECT " . implode(', ', $select) . " ";
   }
 
-  function from() {
+  public function from() {
     $exportedBatchStatus = CRM_Core_OptionGroup::getValue('batch_status', 'Exported', 'name');
     $this->_from = "
 FROM (
@@ -115,7 +115,7 @@ FROM (
 
   }
 
-  function where() {
+  public function where() {
     $clauses = array();
     foreach ($this->_columns as $tableName => $table) {
       if (array_key_exists('filters', $table)) {
@@ -154,29 +154,37 @@ FROM (
     }
   }
 
-  function groupBy() {
+  public function groupBy() {
     $this->_groupBy = " GROUP BY {$this->_aliases['civicrm_financial_trxn']}.trxn_date, {$this->_aliases['civicrm_financial_account']}.id, {$this->_aliases['civicrm_batch']}.id, total_amount > 1";
   }
 
-  function orderBy() {
+  public function orderBy() {
     $this->_orderBy = " ORDER BY trxn_date, {$this->_aliases['civicrm_financial_account']}.accounting_code, total_amount";
   }
 
-  function postProcess() {
-
-    $this->beginPostProcess();
-
-    $sql = $this->buildQuery(FALSE);
-
-    $rows = array();
-    $this->buildRows($sql, $rows);
-
-    $this->formatDisplay($rows);
-    $this->doTemplateAssignment($rows);
-    $this->endPostProcess($rows);
+ /**
+   * Set limit.
+   *
+   * @param int $rowCount
+   *
+   * @return array
+   */
+  public function limit($rowCount = self::ROW_COUNT_LIMIT) {
+    $this->_limit = NULL;
   }
 
-  function alterDisplay(&$rows) {
-    
+  public function postProcess() {
+    parent::postProcess();
+  }
+
+  public function alterDisplay(&$rows) {
+    if (empty($rows)) {
+      return NULL;
+    }
+    if ($this->_outputMode != 'csv') {
+      foreach ($rows as &$row) {
+        $row['civicrm_financial_trxn_total_amount'] = CRM_Utils_Money::format($row['civicrm_financial_trxn_total_amount']);   
+      }
+    }
   }
 }
