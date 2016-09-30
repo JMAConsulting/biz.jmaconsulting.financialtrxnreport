@@ -11,7 +11,6 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
         'fields' => array(
           'name' => array(
             'title' => ts('Account'),
-            'required' => TRUE,
           ),
           'accounting_code' => array(
             'title' => ts('Accounting Code'),
@@ -155,7 +154,7 @@ FROM (
   }
 
   public function groupBy() {
-    $this->_groupBy = " GROUP BY {$this->_aliases['civicrm_financial_trxn']}.trxn_date, {$this->_aliases['civicrm_financial_account']}.id, {$this->_aliases['civicrm_batch']}.id, total_amount > 1";
+    $this->_groupBy = " GROUP BY {$this->_aliases['civicrm_financial_trxn']}.trxn_date, {$this->_aliases['civicrm_financial_account']}.id, {$this->_aliases['civicrm_batch']}.id";
   }
 
   public function orderBy() {
@@ -181,10 +180,11 @@ FROM (
     if (empty($rows)) {
       return NULL;
     }
-    if ($this->_outputMode != 'csv') {
-      foreach ($rows as &$row) {
-        $row['civicrm_financial_trxn_total_amount'] = CRM_Utils_Money::format($row['civicrm_financial_trxn_total_amount']);   
+    foreach ($rows as &$row) {
+      if ($this->_outputMode != 'csv') {
+        $row['civicrm_financial_trxn_total_amount'] = CRM_Utils_Money::format($row['civicrm_financial_trxn_total_amount']);
       }
+      $row['civicrm_financial_trxn_trxn_date'] = CRM_Utils_Date::customFormat($row['civicrm_financial_trxn_trxn_date']);
     }
   }
 }
