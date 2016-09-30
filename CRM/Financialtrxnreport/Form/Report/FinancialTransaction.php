@@ -27,10 +27,11 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
             'required' => TRUE,
             'dbAlias' => 'SUM(total_amount)',
           ),
-          /* 'batch_name' => array( */
-          /*   'title' => ts('Batch Name'), */
-          /*   'required' => TRUE, */
-          /* ), */
+          'batch_name' => array( 
+            'title' => ts('Batch Name'), 
+            'dbAlias' => 'batch_civireport.name',
+            'required' => TRUE, 
+           ),
           'trxn_date' => array(
             'title' => ts('Date'),
             'required' => TRUE,
@@ -48,10 +49,6 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
       'civicrm_batch' => array(
         'dao' => 'CRM_Batch_DAO_Batch',
         'fields' => array(
-          'batch_name' => array(
-            'title' => ts('Batch Name'),
-            'required' => TRUE,
-          ),
         ),
       ),
     );
