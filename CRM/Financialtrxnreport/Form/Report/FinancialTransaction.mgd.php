@@ -11,7 +11,7 @@ return array (
     'params' => 
     array (
       'version' => 3,
-      'label' => 'FinancialTransaction',
+      'label' => 'Accounting Summary by Day',
       'description' => 'FinancialTransaction (biz.jmaconsulting.financialtrxnreport)',
       'class_name' => 'CRM_Financialtrxnreport_Form_Report_FinancialTransaction',
       'report_url' => 'biz.jmaconsulting.financialtrxnreport/financialtransaction',
