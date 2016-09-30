@@ -151,6 +151,7 @@ FROM (
     else {
       $this->_where = "WHERE " . implode(' AND ', $clauses);
     }
+    $this->_having = "HAVING SUM(total_amount) <> 0";
   }
 
   public function groupBy() {
