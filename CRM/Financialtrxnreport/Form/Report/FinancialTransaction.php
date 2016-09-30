@@ -181,15 +181,14 @@ FROM (
     if (empty($rows)) {
       return NULL;
     }
+    $dateFormat = Civi::settings()->get('dateformatFinancialBatch');
+    $onlyNumber = FALSE;
+    if ($this->_outputMode == 'csv') {
+      $onlyNumber = TRUE;
+    }
     foreach ($rows as &$row) {
-      if ($this->_outputMode != 'csv') {
-        $row['civicrm_financial_trxn_total_amount'] = CRM_Utils_Money::format($row['civicrm_financial_trxn_total_amount']);
-        $row['civicrm_financial_trxn_trxn_date'] = CRM_Utils_Date::customFormat($row['civicrm_financial_trxn_trxn_date'], '');
-      }
-      else {
-        $row['civicrm_financial_trxn_total_amount'] = CRM_Utils_Money::format($row['civicrm_financial_trxn_total_amount'], NULL, NULL, TRUE);
-        $row['civicrm_financial_trxn_trxn_date'] = CRM_Utils_Date::customFormat($row['civicrm_financial_trxn_trxn_date'], '%m%d%Y');
-      }
+      $row['civicrm_financial_trxn_total_amount'] = CRM_Utils_Money::format($row['civicrm_financial_trxn_total_amount'], NULL, NULL, $onlyNumber);
+      $row['civicrm_financial_trxn_trxn_date'] = CRM_Utils_Date::customFormat($row['civicrm_financial_trxn_trxn_date'], $dateFormat);
     }
   }
 }
