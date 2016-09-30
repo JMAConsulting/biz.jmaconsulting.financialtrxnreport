@@ -48,6 +48,10 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
       'civicrm_batch' => array(
         'dao' => 'CRM_Batch_DAO_Batch',
         'fields' => array(
+          'batch_name' => array(
+            'title' => ts('Batch Name'),
+            'required' => TRUE,
+          ),
         ),
       ),
     );
@@ -83,7 +87,7 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
     $exportedBatchStatus = CRM_Core_OptionGroup::getValue('batch_status', 'Exported', 'name');
     $this->_from = "
 FROM (
-    SELECT cft.id, DATE(trxn_date) AS trxn_date, total_amount AS total_amount, to_financial_account_id AS financial_account_id, 
+    SELECT cft.id, DATE(trxn_date) AS trxn_date, total_amount AS total_amount, to_financial_account_id AS financial_account_id
       FROM civicrm_financial_trxn cft
 
     UNION
@@ -108,7 +112,7 @@ FROM (
   ) AS {$this->_aliases['civicrm_financial_trxn']}
 
   INNER JOIN civicrm_financial_account {$this->_aliases['civicrm_financial_account']} ON {$this->_aliases['civicrm_financial_trxn']}.financial_account_id = {$this->_aliases['civicrm_financial_account']}.id
-  INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = cft.id AND ceb.entity_table = 'civicrm_financial_trxn'
+  INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = {$this->_aliases['civicrm_financial_trxn']}.id AND ceb.entity_table = 'civicrm_financial_trxn'
   INNER JOIN civicrm_batch {$this->_aliases['civicrm_batch']} ON {$this->_aliases['civicrm_batch']}.id = ceb.batch_id AND {$this->_aliases['civicrm_batch']}.status_id = {$exportedBatchStatus}
 ";
 
@@ -154,11 +158,11 @@ FROM (
   }
 
   function groupBy() {
-    $this->_groupBy = " GROUP BY {$this->_aliases['civicrm_financial_trxn']}.trxn_date, {$this->_aliases['civicrm_financial_account']}.id, total_amount > 1";
+    $this->_groupBy = " GROUP BY {$this->_aliases['civicrm_financial_trxn']}.trxn_date, {$this->_aliases['civicrm_financial_account']}.id, {$this->_aliases['civicrm_batch']}.id, total_amount > 1";
   }
 
   function orderBy() {
-    $this->_orderBy = " ORDER BY trxn_date, {$this->_aliases['civicrm_financial_account']}.accounting_code, {$this->_aliases['civicrm_batch']}.id, total_amount";
+    $this->_orderBy = " ORDER BY trxn_date, {$this->_aliases['civicrm_financial_account']}.accounting_code, total_amount";
   }
 
   function postProcess() {
