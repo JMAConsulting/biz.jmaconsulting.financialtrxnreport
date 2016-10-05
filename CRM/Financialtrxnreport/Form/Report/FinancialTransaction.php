@@ -83,25 +83,25 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
     $exportedBatchStatus = CRM_Core_OptionGroup::getValue('batch_status', 'Exported', 'name');
     $this->_from = "
 FROM (
-    SELECT cft.id, DATE(trxn_date) AS trxn_date, total_amount AS total_amount, to_financial_account_id AS financial_account_id
+    SELECT cft.id, 1.fid, DATE(trxn_date) AS trxn_date, total_amount AS total_amount, to_financial_account_id AS financial_account_id
       FROM civicrm_financial_trxn cft
 
     UNION
 
-    SELECT cft.id, DATE(trxn_date), -total_amount AS total_amount_2, from_financial_account_id 
+    SELECT cft.id, 1 fid, DATE(trxn_date), -total_amount AS total_amount_2, from_financial_account_id 
       FROM civicrm_financial_trxn cft
       WHERE from_financial_account_id IS NOT NULL
 
     UNION
 
-    SELECT cft.id, DATE(cft.trxn_date) AS trxn_date, -cfi.amount total_amount_3, financial_account_id 
+    SELECT cft.id, cfi.id, DATE(cft.trxn_date) AS trxn_date, -cfi.amount total_amount_3, financial_account_id 
       FROM civicrm_financial_item cfi
         INNER JOIN civicrm_entity_financial_trxn ceft ON ceft.entity_id = cfi.id AND ceft.entity_table = 'civicrm_financial_item'
         INNER JOIN civicrm_financial_trxn cft ON cft.id = ceft.financial_trxn_id AND cft.from_financial_account_id IS NULL
 
     UNION
 
-    SELECT cft.id, DATE(cft.trxn_date) AS trxn_date, cfi.amount total_amount_4, financial_account_id 
+    SELECT cft.id, cfi.id, DATE(cft.trxn_date) AS trxn_date, cfi.amount total_amount_4, financial_account_id 
       FROM civicrm_financial_item cfi
         INNER JOIN civicrm_entity_financial_trxn ceft ON ceft.entity_id = cfi.id AND ceft.entity_table = 'civicrm_financial_item'
         INNER JOIN civicrm_financial_trxn cft ON cft.id = ceft.financial_trxn_id AND cft.to_financial_account_id IS NULL
