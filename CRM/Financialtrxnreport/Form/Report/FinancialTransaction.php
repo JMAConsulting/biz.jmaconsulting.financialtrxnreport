@@ -36,20 +36,19 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
             'required' => TRUE,
           ),
         ),
-        'filters' => array(
-          'trxn_date' => array(
-            'title' => ts('Date'),
-            'operatorType' => CRM_Report_Form::OP_DATE,
-            'type' => CRM_Utils_Type::T_DATE,
-            'default' => array('from' => $monthStart->format('m/d/Y'), 'to'=> $monthEnd->format('m/d/Y')),
-          ),
-        ),
       ),
       'civicrm_batch' => array(
         'dao' => 'CRM_Batch_DAO_Batch',
         'fields' => array(
         ),
         'filters' => array(
+          'name' => array(
+            'title' => ts('Date'),
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'type' => CRM_Utils_Type::T_DATE,
+            'default' => array('from' => $monthStart->format('m/d/Y'), 'to'=> $monthEnd->format('m/d/Y')),
+            'dbAlias' => 'DATE(batch_civireport.title)',
+          ),
           'status_id' => array(
             'title' => ts('Batch Status'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
@@ -122,42 +121,7 @@ FROM (
   }
 
   public function where() {
-    $clauses = array();
-    foreach ($this->_columns as $tableName => $table) {
-      if (array_key_exists('filters', $table)) {
-        foreach ($table['filters'] as $fieldName => $field) {
-          $clause = NULL;
-          if (CRM_Utils_Array::value('operatorType', $field) & CRM_Utils_Type::T_DATE) {
-            $relative = CRM_Utils_Array::value("{$fieldName}_relative", $this->_params);
-            $from     = CRM_Utils_Array::value("{$fieldName}_from", $this->_params);
-            $to       = CRM_Utils_Array::value("{$fieldName}_to", $this->_params);
-
-            $clause = $this->dateClause($field['name'], $relative, $from, $to, $field['type']);
-          }
-          else {
-            $op = CRM_Utils_Array::value("{$fieldName}_op", $this->_params);
-            if ($op) {
-              $clause = $this->whereClause($field,
-                $op,
-                CRM_Utils_Array::value("{$fieldName}_value", $this->_params),
-                CRM_Utils_Array::value("{$fieldName}_min", $this->_params),
-                CRM_Utils_Array::value("{$fieldName}_max", $this->_params)
-              );
-            }
-          }
-
-          if (!empty($clause)) {
-            $clauses[] = $clause;
-          }
-        }
-      }
-    }
-    if (empty($clauses)) {
-      $this->_where = "WHERE ( 1 ) ";
-    }
-    else {
-      $this->_where = "WHERE " . implode(' AND ', $clauses);
-    }
+    parent::where();
     $this->_having = "HAVING SUM(total_amount) <> 0";
   }
 
