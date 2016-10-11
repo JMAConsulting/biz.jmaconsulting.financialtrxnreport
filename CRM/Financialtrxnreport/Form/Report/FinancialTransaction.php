@@ -28,7 +28,7 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
           ),
           'batch_name' => array( 
             'title' => ts('Batch Name'), 
-            'dbAlias' => 'batch_civireport.name',
+            'dbAlias' => 'batch_civireport.title',
             'required' => TRUE, 
            ),
           'trxn_date' => array(
