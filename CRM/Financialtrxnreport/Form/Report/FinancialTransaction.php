@@ -130,7 +130,7 @@ FROM (
   }
 
   public function groupBy() {
-    $this->_groupBy = " GROUP BY {$this->_aliases['civicrm_financial_trxn']}.trxn_date, {$this->_aliases['civicrm_financial_account']}.id, {$this->_aliases['civicrm_batch']}.id";
+    $this->_groupBy = " GROUP BY DATE({$this->_aliases['civicrm_batch']}.title), {$this->_aliases['civicrm_financial_account']}.id, {$this->_aliases['civicrm_batch']}.id";
   }
 
   public function orderBy() {
