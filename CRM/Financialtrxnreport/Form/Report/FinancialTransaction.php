@@ -31,9 +31,13 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
             'dbAlias' => 'batch_civireport.title',
             'required' => TRUE, 
            ),
+          'batch_date' => array(
+            'title' => ts('Batch Date'),
+            'required' => TRUE,
+            'dbAlias' => 'DATE(batch_civireport.title)',
+          ),
           'trxn_date' => array(
             'title' => ts('Date'),
-            'required' => TRUE,
           ),
         ),
       ),
@@ -159,7 +163,10 @@ FROM (
     }
     foreach ($rows as &$row) {
       $row['civicrm_financial_trxn_total_amount'] = CRM_Utils_Money::format($row['civicrm_financial_trxn_total_amount'], NULL, NULL, $onlyNumber);
-      $row['civicrm_financial_trxn_trxn_date'] = CRM_Utils_Date::customFormat($row['civicrm_financial_trxn_trxn_date'], $dateFormat);
+      if (!empty($row['civicrm_financial_trxn_trxn_date'])) {
+        $row['civicrm_financial_trxn_trxn_date'] = CRM_Utils_Date::customFormat($row['civicrm_financial_trxn_trxn_date'], $dateFormat);
+      }
+      $row['civicrm_financial_trxn_batch_date'] = CRM_Utils_Date::customFormat($row['civicrm_financial_trxn_batch_date'], $dateFormat);
     }
   }
 }
