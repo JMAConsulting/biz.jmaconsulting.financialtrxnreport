@@ -130,7 +130,7 @@ FROM (
   }
 
   public function orderBy() {
-    $this->_orderBy = " ORDER BY trxn_date, {$this->_aliases['civicrm_financial_account']}.accounting_code, total_amount";
+    $this->_orderBy = " ORDER BY DATE({$this->_aliases['civicrm_batch']}.title), {$this->_aliases['civicrm_financial_account']}.accounting_code, total_amount";
   }
 
  /**
