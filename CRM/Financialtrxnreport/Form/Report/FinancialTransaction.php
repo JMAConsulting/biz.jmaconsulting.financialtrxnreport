@@ -49,6 +49,15 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
         'dao' => 'CRM_Batch_DAO_Batch',
         'fields' => array(
         ),
+        'filters' => array(
+          'status_id' => array(
+            'title' => ts('Batch Status'),
+            'operatorType' => CRM_Report_Form::OP_MULTISELECT,
+            'options' => CRM_Core_PseudoConstant::get('CRM_Batch_DAO_Batch', 'status_id'),
+            'default' => CRM_Core_OptionGroup::getValue('batch_status', 'Exported'),
+            'type' => CRM_Utils_Type::T_INT,
+          ),
+        ),
       ),
     );
     parent::__construct();
@@ -80,7 +89,6 @@ class CRM_Financialtrxnreport_Form_Report_FinancialTransaction extends CRM_Repor
   }
 
   public function from() {
-    $exportedBatchStatus = CRM_Core_OptionGroup::getValue('batch_status', 'Exported', 'name');
     $this->_from = "
 FROM (
     SELECT cft.id, 1.fid, DATE(trxn_date) AS trxn_date, total_amount AS total_amount, to_financial_account_id AS financial_account_id
@@ -109,9 +117,8 @@ FROM (
 
   INNER JOIN civicrm_financial_account {$this->_aliases['civicrm_financial_account']} ON {$this->_aliases['civicrm_financial_trxn']}.financial_account_id = {$this->_aliases['civicrm_financial_account']}.id
   INNER JOIN civicrm_entity_batch ceb ON ceb.entity_id = {$this->_aliases['civicrm_financial_trxn']}.id AND ceb.entity_table = 'civicrm_financial_trxn'
-  INNER JOIN civicrm_batch {$this->_aliases['civicrm_batch']} ON {$this->_aliases['civicrm_batch']}.id = ceb.batch_id AND {$this->_aliases['civicrm_batch']}.status_id = {$exportedBatchStatus}
+  INNER JOIN civicrm_batch {$this->_aliases['civicrm_batch']} ON {$this->_aliases['civicrm_batch']}.id = ceb.batch_id
 ";
-
   }
 
   public function where() {
