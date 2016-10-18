@@ -102,12 +102,12 @@ UNION
       FROM civicrm_financial_trxn cft
       WHERE from_financial_account_id IS NOT NULL
 UNION
-    SELECT cft.id, cfi.id, DATE(cft.trxn_date) AS trxn_date, -cfi.amount total_amount_3, financial_account_id 
+    SELECT cft.id, cfi.id, DATE(cft.trxn_date) AS trxn_date, -ceft.amount total_amount_3, financial_account_id 
       FROM civicrm_financial_item cfi
         INNER JOIN civicrm_entity_financial_trxn ceft ON ceft.entity_id = cfi.id AND ceft.entity_table = 'civicrm_financial_item'
         INNER JOIN civicrm_financial_trxn cft ON cft.id = ceft.financial_trxn_id AND cft.from_financial_account_id IS NULL
 UNION
-    SELECT cft.id, cfi.id, DATE(cft.trxn_date) AS trxn_date, cfi.amount total_amount_4, financial_account_id 
+    SELECT cft.id, cfi.id, DATE(cft.trxn_date) AS trxn_date, ceft.amount total_amount_4, financial_account_id 
       FROM civicrm_financial_item cfi
         INNER JOIN civicrm_entity_financial_trxn ceft ON ceft.entity_id = cfi.id AND ceft.entity_table = 'civicrm_financial_item'
         INNER JOIN civicrm_financial_trxn cft ON cft.id = ceft.financial_trxn_id AND cft.to_financial_account_id IS NULL
